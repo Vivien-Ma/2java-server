@@ -2,11 +2,11 @@ package vi.main;
 import java.io.*;
 import java.net.*;
 
-public class ConnDAO {
+public class Conn {
     private ServerSocket connection;
     private boolean isRunning = false;
 
-    public ConnDAO(){
+    public Conn(){
         try{
             // créé un socket
             connection = new ServerSocket(3000);
