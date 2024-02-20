@@ -1,6 +1,8 @@
 package vi.main;
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Conn {
     private ServerSocket connection;
@@ -53,21 +55,26 @@ public class Conn {
 
         @Override
         public void run() {
-            try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                String message;
-                while ((message = in.readLine()) != null) {
-                    System.out.println("recieved from " + clientSocket.getInetAddress() + message);
+            try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream())) {
+                Object object = ois.readObject();
+                if (object instanceof Message) {
+                    Message receivedMessage = (Message) object;
+                    Map<String, Object> data = receivedMessage.getData();
 
-                    //logique de reponse pour chaque thread client ici !!
-                    String reponse = "server recieved:" + message;
+                    if ("test".equals(data.get("action"))) {
+                        System.out.println("Received test message: " + data.get("message"));
 
-                    //close the client conn
-                    clientSocket.close();
-                    System.out.println("client disconnected: " + clientSocket.getInetAddress());
+                        // Prepare and send a response
+                        Map<String, Object> responseData = new HashMap<>();
+                        responseData.put("response", "Test successful");
+                        Message responseMessage = new Message(responseData);
+
+                        try (ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
+                            oos.writeObject(responseMessage);
+                        }
+                    }
                 }
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
