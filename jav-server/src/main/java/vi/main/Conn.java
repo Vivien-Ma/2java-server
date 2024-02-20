@@ -58,9 +58,9 @@ public class Conn {
             try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream())) {
                 Object object = ois.readObject();
                 if (object instanceof Message) {
+                    System.out.println("recieved:");
                     Message receivedMessage = (Message) object;
                     Map<String, Object> data = receivedMessage.getData();
-
                     if ("test".equals(data.get("action"))) {
                         System.out.println("Received test message: " + data.get("message"));
 
