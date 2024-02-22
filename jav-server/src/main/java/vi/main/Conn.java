@@ -53,30 +53,27 @@ public class Conn {
             this.clientSocket = clientSocket;
         }
 
-        @Override
-        public void run() {
-            try (ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream())) {
-                Object object = ois.readObject();
-                if (object instanceof Message) {
-                    System.out.println("recieved:");
-                    Message receivedMessage = (Message) object;
-                    Map<String, Object> data = receivedMessage.getData();
-                    if ("test".equals(data.get("action"))) {
-                        System.out.println("Received test message: " + data.get("message"));
+@Override
+public void run() {
+    try {
+        // Initialize ObjectOutputStream first to send ACK
+        ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+        Map<String, Object> ackData = new HashMap<>();
+        ackData.put("type", "ACK");
+        ackData.put("message", "Connection established successfully.");
+        Message ackMessage = new Message(ackData);
+        oos.writeObject(ackMessage);
+        oos.flush();
 
-                        // Prepare and send a response
-                        Map<String, Object> responseData = new HashMap<>();
-                        responseData.put("response", "Test successful");
-                        Message responseMessage = new Message(responseData);
+        // Now, initialize ObjectInputStream
+        ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+        System.out.println("Received connection");
 
-                        try (ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream())) {
-                            oos.writeObject(responseMessage);
-                        }
-                    }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        // Rest of your server logic here...
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
     }
 }
